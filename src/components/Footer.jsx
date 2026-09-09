@@ -1,9 +1,31 @@
 import { Facebook, Instagram, Mail, MapPin, Phone, Twitter } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import logo from '../../images/logo.png';
 import Container from './Container.jsx';
 
-const links = ['Home', 'New Arrivals', 'Deals', 'About', 'Contact'];
-const footerCategories = ['Clothes', 'Shoes', 'Perfumes', 'Bags', 'Electronics', 'Beauty'];
+const links = [
+  ['Home', '/'],
+  ['Shop', '/shop'],
+  ['New Arrivals', '/shop?collection=new-arrivals'],
+  ['Deals', '/shop?collection=deals'],
+  ['About', '/about'],
+  ['Contact', '/contact'],
+];
+
+const footerCategories = [
+  ['Clothes', '/shop?category=clothes'],
+  ['Shoes', '/shop?category=shoes'],
+  ['Perfumes', '/shop?category=perfumes'],
+  ['Bags', '/shop?category=bags'],
+  ['Electronics', '/shop?category=electronics'],
+  ['Beauty', '/shop?category=beauty'],
+];
+
+const legalLinks = [
+  ['Privacy', '/privacy'],
+  ['Terms', '/terms'],
+  ['Returns', '/returns'],
+];
 
 export default function Footer() {
   return (
@@ -20,11 +42,17 @@ export default function Footer() {
               A premium online mall for fashion, beauty, lifestyle, gifting, and everyday essentials.
             </p>
             <div className="mt-6 flex gap-3">
-              {[Instagram, Facebook, Twitter].map((Icon, index) => (
+              {[
+                ['Instagram', Instagram, 'https://instagram.com'],
+                ['Facebook', Facebook, 'https://facebook.com'],
+                ['Twitter', Twitter, 'https://x.com'],
+              ].map(([label, Icon, href]) => (
                 <a
-                  key={index}
-                  href="/"
-                  aria-label="Social media"
+                  key={label}
+                  href={href}
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label={label}
                   className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-brand-gold hover:text-brand-ink"
                 >
                   <Icon size={18} aria-hidden="true" />
@@ -36,11 +64,11 @@ export default function Footer() {
           <div>
             <h2 className="text-sm font-bold uppercase tracking-[0.18em] text-white">Quick Links</h2>
             <ul className="mt-5 space-y-3 text-sm text-white/65">
-              {links.map((link) => (
-                <li key={link}>
-                  <a href="/" className="transition hover:text-brand-gold">
-                    {link}
-                  </a>
+              {links.map(([label, href]) => (
+                <li key={label}>
+                  <Link to={href} className="transition hover:text-brand-gold">
+                    {label}
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -49,11 +77,11 @@ export default function Footer() {
           <div>
             <h2 className="text-sm font-bold uppercase tracking-[0.18em] text-white">Categories</h2>
             <ul className="mt-5 space-y-3 text-sm text-white/65">
-              {footerCategories.map((category) => (
+              {footerCategories.map(([category, href]) => (
                 <li key={category}>
-                  <a href="/" className="transition hover:text-brand-gold">
+                  <Link to={href} className="transition hover:text-brand-gold">
                     {category}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -64,22 +92,33 @@ export default function Footer() {
             <ul className="mt-5 space-y-4 text-sm text-white/65">
               <li className="flex gap-3">
                 <MapPin className="mt-0.5 shrink-0 text-brand-gold" size={18} aria-hidden="true" />
-                Lagos, Nigeria
+                Victoria Island, Lagos, Nigeria
               </li>
               <li className="flex gap-3">
                 <Phone className="mt-0.5 shrink-0 text-brand-gold" size={18} aria-hidden="true" />
-                +234 800 000 0000
+                <a href="tel:+2342013301840" className="hover:text-brand-gold">
+                  +234 201 330 1840
+                </a>
               </li>
               <li className="flex gap-3">
                 <Mail className="mt-0.5 shrink-0 text-brand-gold" size={18} aria-hidden="true" />
-                hello@psonlinemall.com
+                <a href="mailto:hello@psonlinemall.com" className="hover:text-brand-gold">
+                  hello@psonlinemall.com
+                </a>
               </li>
             </ul>
           </div>
         </div>
 
-        <div className="mt-12 border-t border-white/10 pt-6 text-center text-xs text-white/50">
-          Copyright {new Date().getFullYear()} P's Online Mall. All rights reserved.
+        <div className="mt-12 flex flex-col gap-4 border-t border-white/10 pt-6 text-xs text-white/50 sm:flex-row sm:items-center sm:justify-between">
+          <p>Copyright {new Date().getFullYear()} P's Online Mall. All rights reserved.</p>
+          <div className="flex gap-4">
+            {legalLinks.map(([label, href]) => (
+              <Link key={label} to={href} className="hover:text-brand-gold">
+                {label}
+              </Link>
+            ))}
+          </div>
         </div>
       </Container>
     </footer>

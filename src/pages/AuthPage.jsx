@@ -2,12 +2,16 @@ import { Eye, EyeOff, Lock, Mail, UserRound } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { z } from 'zod';
 import authImage from '../../images/2.png';
 import Button from '../components/Button.jsx';
 import Footer from '../components/Footer.jsx';
 import Input from '../components/Input.jsx';
+import PageMeta from '../components/PageMeta.jsx';
+import { useAuth } from '../context/AuthContext.jsx';
+import { useToast } from '../context/ToastContext.jsx';
+import { forgotPassword, resetPassword } from '../services/api.js';
 import logo from '../../images/logo.png';
 
 const schemas = {
@@ -47,28 +51,28 @@ const copy = {
     title: 'Login to your account',
     text: 'Access wishlists, orders, and private shopping offers.',
     submit: 'Login',
-    success: 'Login request prepared. Connect the JWT endpoint to continue.',
+    success: 'Welcome back.',
   },
   register: {
     eyebrow: 'Join P’s',
     title: 'Create your account',
     text: 'Save favorites, checkout faster, and receive tailored recommendations.',
     submit: 'Create Account',
-    success: 'Account form validated. Connect registration API to continue.',
+    success: 'Account created. Welcome to P’s.',
   },
   forgot: {
     eyebrow: 'Password help',
     title: 'Reset your password',
     text: 'Enter your email and we will send reset instructions.',
     submit: 'Send Reset Link',
-    success: 'Reset instructions are ready to be sent from the backend.',
+    success: 'If that email exists, reset instructions are on the way.',
   },
   reset: {
     eyebrow: 'New password',
     title: 'Set a new password',
     text: 'Choose a secure password to protect your shopping account.',
     submit: 'Update Password',
-    success: 'Password reset form validated successfully.',
+    success: 'Password updated. You can log in now.',
   },
 };
 
@@ -132,6 +136,11 @@ export default function AuthPage({ mode }) {
   const [submitting, setSubmitting] = useState(false);
   const pageCopy = copy[mode];
   const schema = schemas[mode];
+  const navigate = useNavigate();
+  const [params] = useSearchParams();
+  const { login, register: registerAccount } = useAuth();
+  const { pushToast } = useToast();
+  const resetToken = params.get('token') || '';
   const defaults = useMemo(
     () => ({
       name: '',
@@ -161,15 +170,43 @@ export default function AuthPage({ mode }) {
     }
 
     setSubmitting(true);
-    await new Promise((resolve) => {
-      window.setTimeout(resolve, 600);
-    });
-    setSubmitting(false);
-    setServerMessage(pageCopy.success);
+    try {
+      if (mode === 'login') {
+        await login({ email: parsed.data.email, password: parsed.data.password });
+        pushToast(pageCopy.success);
+        navigate('/account');
+      } else if (mode === 'register') {
+        await registerAccount({
+          name: parsed.data.name,
+          email: parsed.data.email,
+          password: parsed.data.password,
+        });
+        pushToast(pageCopy.success);
+        navigate('/account');
+      } else if (mode === 'forgot') {
+        const result = await forgotPassword(parsed.data.email);
+        setServerMessage(result.resetUrl ? `${pageCopy.success} ${result.resetUrl}` : pageCopy.success);
+      } else {
+        if (!resetToken) {
+          setError('password', { type: 'manual', message: 'Reset token is missing.' });
+          return;
+        }
+        await resetPassword({ token: resetToken, password: parsed.data.password });
+        setServerMessage(pageCopy.success);
+        navigate('/login');
+      }
+    } catch (error) {
+      const message = error.response?.data?.error || error.message || 'Something went wrong.';
+      setServerMessage('');
+      pushToast(message, 'error');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
     <div className="flex min-h-screen flex-col bg-white text-brand-ink">
+      <PageMeta title={pageCopy.title} />
       <main className="grid min-h-screen flex-1 lg:grid-cols-[1.05fr_0.95fr]">
         <section className="relative hidden overflow-hidden bg-brand-purple lg:block">
           <img src={authImage} alt="" className="h-full w-full object-cover opacity-70" />
@@ -301,6 +338,7 @@ export default function AuthPage({ mode }) {
 
               <button
                 type="button"
+                onClick={() => pushToast('Google sign-in will be added after email auth is live.', 'info')}
                 className="w-full rounded-full border border-gray-200 bg-white px-5 py-3 text-sm font-semibold text-brand-ink transition hover:border-brand-purple hover:text-brand-purple"
               >
                 Continue with Google

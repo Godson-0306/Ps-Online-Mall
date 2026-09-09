@@ -1,10 +1,32 @@
 import { Heart, ShoppingBag, Star } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import { useCart } from '../context/CartContext.jsx';
+import { useToast } from '../context/ToastContext.jsx';
+import { useWishlist } from '../context/WishlistContext.jsx';
 import ProductBadge from './ProductBadge.jsx';
 import { formatCurrency } from '../utils/formatCurrency.js';
 
 export default function ProductCard({ product, compact = false }) {
+  const { addItem } = useCart();
+  const { isWishlisted, toggleItem } = useWishlist();
+  const { pushToast } = useToast();
+  const saved = isWishlisted(product.id);
+
+  const addToCart = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    addItem(product, { quantity: 1 });
+    pushToast(`${product.name} added to cart`);
+  };
+
+  const onWishlist = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    toggleItem(product);
+    pushToast(saved ? 'Removed from wishlist' : 'Saved to wishlist');
+  };
+
   return (
     <motion.article
       className="group relative overflow-hidden rounded-[1.5rem] bg-white shadow-soft transition duration-300 hover:-translate-y-1 hover:shadow-lift"
@@ -21,14 +43,17 @@ export default function ProductCard({ product, compact = false }) {
         />
         <button
           type="button"
-          aria-label={`Add ${product.name} to wishlist`}
-          className="absolute right-4 top-4 z-10 inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-brand-ink shadow-soft transition hover:text-brand-purple"
+          aria-label={saved ? `Remove ${product.name} from wishlist` : `Add ${product.name} to wishlist`}
+          onClick={onWishlist}
+          className={`absolute right-4 top-4 z-10 inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/90 shadow-soft transition ${
+            saved ? 'text-brand-purple' : 'text-brand-ink hover:text-brand-purple'
+          }`}
         >
-          <Heart size={18} aria-hidden="true" />
+          <Heart size={18} aria-hidden="true" fill={saved ? 'currentColor' : 'none'} />
         </button>
         <Link
           to={`/products/${product.id}`}
-          className="absolute inset-x-5 bottom-5 translate-y-3 rounded-full bg-white px-4 py-3 text-center text-sm font-semibold text-brand-purple opacity-0 shadow-soft transition duration-300 group-hover:translate-y-0 group-hover:opacity-100"
+          className="absolute inset-x-5 bottom-5 rounded-full bg-white px-4 py-3 text-center text-sm font-semibold text-brand-purple shadow-soft transition duration-300 sm:translate-y-3 sm:opacity-0 sm:group-hover:translate-y-0 sm:group-hover:opacity-100"
         >
           Quick View
         </Link>
@@ -59,6 +84,7 @@ export default function ProductCard({ product, compact = false }) {
 
         <button
           type="button"
+          onClick={addToCart}
           className={`inline-flex w-full items-center justify-center rounded-full bg-brand-ink text-sm font-semibold text-white transition hover:bg-brand-purple ${
             compact ? 'px-4 py-3' : 'px-5 py-3.5'
           }`}

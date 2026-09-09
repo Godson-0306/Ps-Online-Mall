@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import Container from './Container.jsx';
 import SectionTitle from './SectionTitle.jsx';
 
@@ -12,12 +13,13 @@ export default function TopBrands({ brands }) {
         />
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
           {brands.map((brand) => (
-            <div
+            <Link
               key={brand}
+              to={`/shop?brand=${encodeURIComponent(brand)}`}
               className="flex h-28 items-center justify-center rounded-[1.25rem] border border-gray-100 bg-brand-mist px-4 text-center text-lg font-black text-brand-ink shadow-sm transition hover:border-brand-gold/50 hover:bg-white hover:shadow-soft"
             >
               {brand}
-            </div>
+            </Link>
           ))}
         </div>
       </Container>

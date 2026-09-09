@@ -1,14 +1,3 @@
-export function createCartItems(products) {
-  return products.slice(0, 3).map((product, index) => ({
-    id: product.id,
-    product,
-    quantity: index + 1,
-    color: product.colors?.[0] || 'Default',
-    size: product.sizes?.[0] || 'One Size',
-    saved: false,
-  }));
-}
-
 export function calculateCartTotals(items, coupon = '') {
   const subtotal = items.reduce(
     (total, item) => total + item.product.price * item.quantity,

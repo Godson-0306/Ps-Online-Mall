@@ -24,7 +24,7 @@ export default function HeroSlider({ slides }) {
               <div className="absolute bottom-[18%] left-1/2 hidden h-44 w-72 -translate-x-1/2 rounded-full border border-white/70 bg-white/25 blur-sm md:block" />
               <img
                 src={slide.image}
-                alt=""
+                alt={slide.alt || 'P’s Online Mall campaign'}
                 loading={slide === slides[0] ? 'eager' : 'lazy'}
                 className="relative z-10 h-full w-full object-contain"
               />

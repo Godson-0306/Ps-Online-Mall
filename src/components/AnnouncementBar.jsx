@@ -9,8 +9,8 @@ export default function AnnouncementBar() {
   }
 
   return (
-    <div className="bg-brand-purple text-white">
-      <div className="mx-auto flex min-h-10 max-w-7xl items-center justify-center gap-3 px-4 text-center text-xs font-medium sm:text-sm">
+    <div className="relative bg-brand-purple text-white">
+      <div className="mx-auto flex min-h-10 max-w-7xl items-center justify-center gap-3 px-4 pr-12 text-center text-xs font-medium sm:text-sm">
         <span>Free delivery on orders above ₦75,000. Summer edits now up to 30% off.</span>
         <button
           type="button"

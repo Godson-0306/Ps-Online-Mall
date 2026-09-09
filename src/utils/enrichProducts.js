@@ -82,20 +82,27 @@ const productMeta = [
 ];
 
 export function enrichProducts(products) {
-  return products.map((product, index) => ({
-    ...product,
-    ...productMeta[index % productMeta.length],
-    description:
-      product.description ||
-      'A refined everyday essential selected for quality, finish, and lasting appeal.',
-    specifications: product.specifications || [
-      'Premium finish',
-      'Carefully sourced materials',
-      'Gift-ready packaging',
-      'Quality checked before dispatch',
-    ],
-    gallery: product.gallery || [product.image, product.image, product.image],
-  }));
+  return products.map((product, index) => {
+    const meta = productMeta[index % productMeta.length];
+    return {
+      ...meta,
+      ...product,
+      description:
+        product.description ||
+        'A refined everyday essential selected for quality, finish, and lasting appeal.',
+      specifications: product.specifications?.length
+        ? product.specifications
+        : [
+            'Premium finish',
+            'Carefully sourced materials',
+            'Gift-ready packaging',
+            'Quality checked before dispatch',
+          ],
+      gallery: product.gallery?.length ? product.gallery : [product.image, product.image, product.image],
+      colors: product.colors?.length ? product.colors : meta.colors,
+      sizes: product.sizes?.length ? product.sizes : meta.sizes,
+    };
+  });
 }
 
 export function getCatalogFacets(products) {

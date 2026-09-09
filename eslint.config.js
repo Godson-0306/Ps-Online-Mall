@@ -5,7 +5,7 @@ import reactRefresh from 'eslint-plugin-react-refresh';
 
 export default [
   {
-    ignores: ['dist', 'node_modules'],
+    ignores: ['dist', 'node_modules', 'server/uploads', 'server/data.json', 'playwright-report', 'test-results'],
   },
   js.configs.recommended,
   {
@@ -19,9 +19,13 @@ export default [
         },
       },
       globals: {
+        Buffer: 'readonly',
         console: 'readonly',
         document: 'readonly',
+        fetch: 'readonly',
+        FormData: 'readonly',
         import: 'readonly',
+        navigator: 'readonly',
         process: 'readonly',
         URL: 'readonly',
         window: 'readonly',
@@ -42,6 +46,7 @@ export default [
       'react/jsx-uses-react': 'off',
       'react/jsx-uses-vars': 'error',
       'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
+      'no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
     },
   },
 ];

@@ -1,0 +1,12 @@
+node_modules
+dist
+.env
+.env.local
+server/data.json
+server/uploads
+test-results
+playwright-report
+blob-report
+playwright/.cache
+.DS_Store
+Thumbs.db

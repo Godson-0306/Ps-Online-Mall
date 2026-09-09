@@ -1,19 +1,25 @@
 import { SlidersHorizontal, RotateCcw, Star } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import Breadcrumb from '../components/Breadcrumb.jsx';
 import Button from '../components/Button.jsx';
 import Container from '../components/Container.jsx';
 import Drawer from '../components/Drawer.jsx';
 import EmptyState from '../components/EmptyState.jsx';
-import Footer from '../components/Footer.jsx';
-import Navbar from '../components/Navbar.jsx';
 import Newsletter from '../components/Newsletter.jsx';
+import PageMeta from '../components/PageMeta.jsx';
 import Pagination from '../components/Pagination.jsx';
 import ProductCard from '../components/ProductCard.jsx';
 import { getProducts } from '../services/api.js';
 import { enrichProducts, getCatalogFacets } from '../utils/enrichProducts.js';
+import {
+  matchesBrandParam,
+  matchesCategoryParam,
+  matchesCollection,
+  matchesSearch,
+} from '../utils/shopFilters.js';
 
 const sortOptions = [
   ['newest', 'Newest'],
@@ -244,9 +250,22 @@ export default function ShopPage() {
   const [sortBy, setSortBy] = useState('newest');
   const [page, setPage] = useState(1);
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const { data = [], isLoading } = useQuery({ queryKey: ['products'], queryFn: getProducts });
+  const navigate = useNavigate();
+  const [params] = useSearchParams();
+  const categoryParam = params.get('category') || '';
+  const collectionParam = params.get('collection') || '';
+  const brandParam = params.get('brand') || '';
+  const searchQuery = params.get('q') || '';
+  const viewParam = params.get('view') || '';
+  const { data = [], isLoading, isError } = useQuery({ queryKey: ['products'], queryFn: getProducts });
   const products = useMemo(() => enrichProducts(data), [data]);
   const facets = useMemo(() => getCatalogFacets(data), [data]);
+
+  useEffect(() => {
+    if (viewParam === 'categories') {
+      document.getElementById('shop-filters')?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [viewParam]);
 
   const filteredProducts = useMemo(() => {
     const filtered = products.filter((product) => {
@@ -273,7 +292,11 @@ export default function ShopPage() {
         matchPrice &&
         matchRating &&
         matchDiscount &&
-        matchNew
+        matchNew &&
+        matchesCategoryParam(product, categoryParam) &&
+        matchesCollection(product, collectionParam) &&
+        matchesBrandParam(product, brandParam) &&
+        matchesSearch(product, searchQuery)
       );
     });
 
@@ -285,7 +308,7 @@ export default function ShopPage() {
       if (sortBy === 'best-selling') return b.sales - a.sales;
       return Number(b.isNew) - Number(a.isNew);
     });
-  }, [filters, products, sortBy]);
+  }, [brandParam, categoryParam, collectionParam, filters, products, searchQuery, sortBy]);
 
   const perPage = 8;
   const totalPages = Math.ceil(filteredProducts.length / perPage);
@@ -293,6 +316,7 @@ export default function ShopPage() {
   const resetFilters = () => {
     setFilters(initialFilters);
     setPage(1);
+    navigate('/shop');
   };
   const updateFilters = (nextFilters) => {
     setFilters(nextFilters);
@@ -300,10 +324,9 @@ export default function ShopPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white text-brand-ink">
-      <Navbar />
-      <main>
-        <Breadcrumb items={[{ label: 'Shop' }]} />
+    <>
+      <PageMeta title="Shop" description="Browse fashion, beauty, lifestyle, and electronics at P's Online Mall." />
+      <Breadcrumb items={[{ label: 'Shop' }]} />
         <section className="bg-brand-mist py-12 sm:py-16">
           <Container>
             <motion.div
@@ -316,6 +339,9 @@ export default function ShopPage() {
                   Premium marketplace
                 </p>
                 <h1 className="mt-3 text-4xl font-semibold text-brand-ink sm:text-5xl">Shop</h1>
+                {searchQuery ? (
+                  <p className="mt-3 text-sm text-gray-500">Results for “{searchQuery}”</p>
+                ) : null}
               </div>
               <p className="text-sm font-semibold text-gray-500">
                 {filteredProducts.length} products found
@@ -324,7 +350,7 @@ export default function ShopPage() {
           </Container>
         </section>
 
-        <section className="py-12 sm:py-16">
+        <section className="py-12 sm:py-16" id="shop-filters">
           <Container>
             <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <Button
@@ -364,6 +390,11 @@ export default function ShopPage() {
               <div>
                 {isLoading ? (
                   <ProductSkeletonGrid />
+                ) : isError && !paginatedProducts.length ? (
+                  <EmptyState
+                    title="We could not load the catalog."
+                    text="Check your connection and try again."
+                  />
                 ) : paginatedProducts.length ? (
                   <>
                     <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">
@@ -388,8 +419,6 @@ export default function ShopPage() {
           </Container>
         </section>
         <Newsletter />
-      </main>
-      <Footer />
       <Drawer title="Filters" open={drawerOpen} onClose={() => setDrawerOpen(false)}>
         <FilterPanel
           facets={facets}
@@ -398,6 +427,6 @@ export default function ShopPage() {
           onReset={resetFilters}
         />
       </Drawer>
-    </div>
+    </>
   );
 }
